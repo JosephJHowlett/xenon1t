@@ -71,7 +71,7 @@ class DataExtractor():
         if eval(self.event_cut_string):
             event_entry = np.array([getattr(event, field) for field in self.event_fields])
 
-        nb_entries_in_event = 0
+            nb_entries_in_event = 0
             for (peak_nb, peak) in enumerate(event.peaks):
                 # Check if peak passes the cut
                 if eval(self.peak_cut_string):
@@ -105,18 +105,18 @@ class DataExtractor():
                         entry[:, len(event_entry):(len(peak_entry)+len(event_entry))] = peak_entry
                         nb_entries_in_peak = entry.shape[0]
                         nb_entries_in_event += nb_entries_in_peak
-                        index_arrays[1] = np.append(index_arrays[1], np.array([peak_nb]*nb_entries_in_peak))
-                        index_arrays[2] = np.append(index_arrays[2], np.arange(nb_entries_in_peak))
+                        self.index_arrays[1] = np.append(self.index_arrays[1], np.array([peak_nb]*nb_entries_in_peak))
+                        self.index_arrays[2] = np.append(self.index_arrays[2], np.arange(nb_entries_in_peak))
                     elif self.level == 'peak':
                         # Extra brackets needed for concatenation in the end, else we'll get flat array
                         entry = np.c_[[event_entry], [peak_entry]]
                         nb_entries_in_event += 1
-                        index_arrays[1] = np.append(index_arrays[1], np.array([peak_nb]))
+                        self.index_arrays[1] = np.append(self.index_arrays[1], np.array([peak_nb]))
                     else:
                         # We should actually never reach this since the checking has been done before
                         raise ValueError("Enter either 'peak' of 'hit' for level!")
                     self.data.append(entry)
-        index_arrays[0] = np.append(index_arrays[0], np.array([event.event_number]*nb_entries_in_event]))
+            self.index_arrays[0] = np.append(self.index_arrays[0], np.array([event.event_number]*nb_entries_in_event))
         # Check if user-defined event number limit is reached
         if event.event_number >= self.stop_after:
             print("User-defined limit of %d events reached, stopping..." % self.stop_after)
@@ -167,6 +167,6 @@ class DataExtractor():
             # For peak level no such problem exists (yet) so just keep normal names
             field_names = event_fields + peak_fields
         #self.data = make_named_array(self.data, field_names)
-        self.data = pd.DataFrame(data, columns=field_names, index=index_arrays)
+        self.data = pd.DataFrame(data, columns=field_names, index=self.index_arrays)
         self.data.index.names = index_names
         return self.data
